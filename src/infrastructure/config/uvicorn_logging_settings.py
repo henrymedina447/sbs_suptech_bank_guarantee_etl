@@ -24,6 +24,7 @@ UVICORN_LOGGING = {
         "app": {"handlers": ["default"], "level": "INFO", "propagate": False},
         "app.environment": {"handlers": ["default"], "level": "INFO", "propagate": False},
         "app.workflows": {"handlers": ["default"], "level": "INFO", "propagate": False},
+        "app.pandas": {"handlers": ["default"], "level": "INFO", "propagate": False},
         "": {"handlers": ["default"], "level": "INFO"},
     },
 }

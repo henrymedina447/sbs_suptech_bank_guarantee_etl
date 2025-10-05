@@ -1,5 +1,9 @@
-from abc import ABC
+from abc import ABC, abstractmethod
+
+from application.dto.financial_metadata_result import FinancialMetadataResult
 
 
 class TransformDocumentPort(ABC):
-    pass
+    @abstractmethod
+    def get_financial_metadata(self, **kwargs)->FinancialMetadataResult:
+        ...

@@ -1,7 +1,5 @@
 from pydantic import BaseModel, Field
 
-from domain.models.states.document_contract_state import DocumentContractState
-
 
 class EtlBaseState(BaseModel):
     record_id: str = Field(description="ID del documento")
