@@ -15,12 +15,12 @@ class WorkflowBase(ABC):
     def __init__(self,
                  extractor: ExtractorDocumentPort,
                  transformer: TransformDocumentPort,
-                 metadata_loader: LoaderMetadataPort,
+                 loader_metadata: LoaderMetadataPort,
                  notificator: NotificationPort
                  ):
         self._extractor = extractor
         self._transformer = transformer
-        self._metadata_loader = metadata_loader
+        self._loader_metadata = loader_metadata
         self._notificator = notificator
         self._graph = self._build_graph()
 

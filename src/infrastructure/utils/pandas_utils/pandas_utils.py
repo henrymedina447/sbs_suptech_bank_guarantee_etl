@@ -39,7 +39,7 @@ class PandasUtils:
     def transform_df_rename_columns(name_columns: list[str], df: Optional[DataFrame]) -> DataFrame:
         if df is None:
             raise ValueError("El Dataframe es nulo")
-        if df is not None and df.shape[1] >3:
+        if df is not None and df.shape[1] > 3:
             raise ValueError(f"Se esperaban 3 columnas, pero se encontraron {df.shape[1]}: {list(df.columns)}")
         if df.shape[1] == 3:
             df.columns = [*name_columns]
@@ -101,4 +101,3 @@ class PandasUtils:
         """
         first_row = df_transformed.iloc[0].to_dict()
         return FinancialMetadataResult(**first_row)
-

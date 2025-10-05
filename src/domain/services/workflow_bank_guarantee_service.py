@@ -1,5 +1,10 @@
 import re
 from datetime import datetime
+import uuid
+
+from domain.models.entities.bank_guarantee_item_entity import BankGuaranteeItemEntity, BankGuaranteeMetadata
+from domain.models.states.document_contract_state import DocumentContractState
+from domain.models.states.etl_bank_guarantee_state import EtlBankGuaranteeState
 
 
 class WorkflowBankGuaranteeServiceDomain:
@@ -67,3 +72,21 @@ class WorkflowBankGuaranteeServiceDomain:
 
         return dt.strftime("%d/%m/%Y")
 
+    @staticmethod
+    def transform_in_entity_to_dynamo(
+            origin_doc: DocumentContractState,
+            bank_guarantee_state: EtlBankGuaranteeState
+    ) -> BankGuaranteeItemEntity:
+        return BankGuaranteeItemEntity(
+            id=str(uuid.uuid4()),
+            file_name=origin_doc.key,
+            period_year=bank_guarantee_state.period_year,
+            period_month=bank_guarantee_state.period_month,
+            supervisory_record_id=bank_guarantee_state.record_id,
+            metadata=BankGuaranteeMetadata(
+                letter_date=bank_guarantee_state.letter_date,
+                disbursed_amount=str(bank_guarantee_state.disbursed_amount) if bank_guarantee_state.disbursed_amount else None,
+                reduced_amount=str(bank_guarantee_state.reduced_amount) if bank_guarantee_state.reduced_amount else None,
+                total_amount=str(bank_guarantee_state.total_amount) if bank_guarantee_state.total_amount else None,
+            )
+        )

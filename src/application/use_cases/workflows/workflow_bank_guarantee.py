@@ -34,6 +34,8 @@ class WorkflowBankGuarantee(WorkflowBase):
             self.grid = extract_results.grid
             print("extract", extract_results.date_text)
             return {
+                "period_month": self.doc.period_month,
+                "period_year": self.doc.period_year,
                 "promotor": extract_results.promotor_text,
                 "letter_date": WorkflowBankGuaranteeServiceDomain.transform_date(extract_results.date_text),
                 "extract_success": True
@@ -72,7 +74,8 @@ class WorkflowBankGuarantee(WorkflowBase):
             if not transform_success:
                 raise ValueError("El proceso de transformación fue fallido en bank guarantee")
 
-            print("state", state)
+            entity = WorkflowBankGuaranteeServiceDomain.transform_in_entity_to_dynamo(self.doc, state)
+            self._loader_metadata.save_metadata(entity)
             return {
                 "load_success": True
             }

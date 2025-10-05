@@ -1,8 +1,9 @@
 from abc import ABC, abstractmethod
-from domain.models.states.etl_base_state import EtlBaseState
+
+from domain.models.entities.bank_guarantee_item_entity import BankGuaranteeItemEntity
 
 
 class LoaderMetadataPort(ABC):
     @abstractmethod
-    def save_metadata(self, document_type: str, data: list[EtlBaseState]) -> None:
+    def save_metadata(self, data: BankGuaranteeItemEntity) -> None:
         ...
