@@ -32,12 +32,13 @@ class WorkflowBankGuarantee(WorkflowBase):
             if extract_results is None:
                 raise ValueError("No se consiguió extraer la metadata")
             self.grid = extract_results.grid
-            print("extract", extract_results.date_text)
             return {
                 "period_month": self.doc.period_month,
                 "period_year": self.doc.period_year,
                 "promotor": extract_results.promotor_text,
                 "letter_date": WorkflowBankGuaranteeServiceDomain.transform_date(extract_results.date_text),
+                "project_text": extract_results.project_text,
+                "letter_text": extract_results.letter_text,
                 "extract_success": True
             }
         except Exception as e:

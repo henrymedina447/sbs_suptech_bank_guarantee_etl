@@ -8,6 +8,12 @@ class BankGuaranteeMetadata(BaseModel):
     disbursed_amount: str | None = Field(description="Contiene el monto desembolsado", default=None)
     reduced_amount: str | None = Field(description="Contiene el monto disminuido", default=None)
     total_amount: str | None = Field(description="Contiene el monto total", default=None)
+    letter_text: str | None = Field(description="Contiene el número de la carta", default=None)
+    project_text: str | None = Field(description="Contiene el nombre del proyecto", default=None)
+    promotor: str | None = Field(
+        description="Contiene el nombre del promotor que se entiende es el cliente",
+        default=None
+    )
 
 
 class BankGuaranteeItemEntity(BaseModel):

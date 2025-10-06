@@ -88,5 +88,8 @@ class WorkflowBankGuaranteeServiceDomain:
                 disbursed_amount=str(bank_guarantee_state.disbursed_amount) if bank_guarantee_state.disbursed_amount else None,
                 reduced_amount=str(bank_guarantee_state.reduced_amount) if bank_guarantee_state.reduced_amount else None,
                 total_amount=str(bank_guarantee_state.total_amount) if bank_guarantee_state.total_amount else None,
+                letter_text=bank_guarantee_state.letter_text,
+                project_text=bank_guarantee_state.project_text,
+                promotor=bank_guarantee_state.promotor
             )
         )

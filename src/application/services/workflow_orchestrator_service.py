@@ -49,7 +49,6 @@ class WorkflowOrchestratorServiceApplication:
     async def process_one_document(doc: DocumentContractState, sem: asyncio.Semaphore,
                                    wf: WorkflowBankGuarantee) -> DocumentContractState:
         async with sem:
-            print("doc", doc)
             try:
 
                 new_doc: DocumentContractState = await wf.execute(doc)

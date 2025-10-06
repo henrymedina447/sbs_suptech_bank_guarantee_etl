@@ -40,15 +40,23 @@ class TextractExtractorDocument(ExtractorDocumentPort):
             pages, blocks = TextractUtils.group_by_page(response=results_from_analysis)
             letter_block: BlockTypeDef | None = TextractUtils.get_letter_block(blocks)
             date_block: BlockTypeDef | None = TextractUtils.get_date_by_letter_position(letter_block, blocks)
-            promotor_block: BlockTypeDef | None = TextractUtils.get_promotor_by_query_result(blocks)
-            promotor_text, date_text = TextractUtils.get_text_for_promotor_and_date(promotor_block, date_block)
+            promotor_block: BlockTypeDef | None = TextractUtils.get_query_response_block("Promotor", blocks)
+            project_block: BlockTypeDef | None = TextractUtils.get_query_response_block("Project", blocks)
+            #promotor_text, date_text = TextractUtils.get_text_for_promotor_and_date(promotor_block, date_block)
+            letter_text: str | None = TextractUtils.get_text_from_block(letter_block)
+            date_text: str | None = TextractUtils.get_text_from_block(date_block)
+            promotor_text: str | None = TextractUtils.get_text_from_block(promotor_block)
+            project_text: str | None = TextractUtils.get_text_from_block(project_block)
+            # Obtención de la tabla
             tables: list[BuildTablesResult] = TextractUtils.build_tables_from_textract_blocks(blocks, False)
             tables_filtered: list[BuildTablesResult] = TextractUtils.filter_tables_keyword(tables, blocks)
             grid_selected: list[list[str]] = next((t.grid for t in tables_filtered if t.page == 1), [])
             return TextractPipelineResult(
                 date_text=date_text,
                 promotor_text=promotor_text,
-                grid=grid_selected
+                grid=grid_selected,
+                letter_text=letter_text,
+                project_text=project_text
             )
         except Exception as e:
             app_logger.error(f"Error en extract_pipeline: {str(e)}")
@@ -62,8 +70,14 @@ class TextractExtractorDocument(ExtractorDocumentPort):
                     "Alias": "Promotor",
                     "Pages": ["1"]
                 }
+                project_query: QueryTypeDef = {
+                    "Text": "What is the project name?",
+                    "Alias": "Project",
+                    "Pages": ["1"]
+                }
                 queries: Sequence[QueryTypeDef] = [
-                    promotor_query
+                    promotor_query,
+                    project_query
                 ]
                 return self.textract.start_document_analysis(
                     DocumentLocation={

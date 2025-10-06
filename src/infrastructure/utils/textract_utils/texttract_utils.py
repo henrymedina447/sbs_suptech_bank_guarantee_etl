@@ -105,6 +105,30 @@ class TextractUtils:
         return promotor_block
 
     @staticmethod
+    def get_text_from_block(block: BlockTypeDef | None) -> str | None:
+        if block is None:
+            return None
+        return block.get("Text", None)
+
+    @staticmethod
+    def get_query_response_block(alias: str, results: list[BlockTypeDef]) -> BlockTypeDef | None:
+        # Obtenemos la query
+        query_blocks: BlockTypeDef | None = next(
+            (b for b in results if b["BlockType"] == "QUERY" and b["Query"]["Alias"] == alias), None)
+        if query_blocks is None:
+            return None
+        id_to_search_block: list[str] = next(
+            (r["Ids"] for r in query_blocks.get("Relationships", []) if r.get("Type") == "ANSWER"),
+            []
+        )
+        if id_to_search_block is None:
+            return None
+        if len(id_to_search_block) == 0:
+            return None
+        block_found: BlockTypeDef | None = next((b for b in results if b["Id"] == id_to_search_block[0]), None)
+        return block_found
+
+    @staticmethod
     def _index_blocks_by_id(blocks: list[BlockTypeDef]) -> dict[str, BlockTypeDef]:
         """
         Cread un diccionario que tiene la estructura:
