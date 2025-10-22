@@ -25,10 +25,6 @@ class KafkaSettings(BaseModel):
 
 
 class AwsSettings(BaseModel):
-    access_key_id: str = Field(
-        description="es el access key de la cuenta obtenido en el IAM"
-    )
-    secret: str = Field(description="es el secret key de la cuenta obtenido en el IAM")
     region: str = Field(description="La región de la aplicación")
 
 
@@ -65,8 +61,6 @@ class AppSettings(BaseModel):
         try:
             return cls(
                 aws_settings=AwsSettings(
-                    access_key_id=os.getenv("AWS_ACCESS_KEY_ID"),
-                    secret=os.getenv("AWS_SECRET_ACCESS_KEY"),
                     region=os.getenv("AWS_DEFAULT_REGION"),
                 ),
                 s3_settings=S3Settings(
