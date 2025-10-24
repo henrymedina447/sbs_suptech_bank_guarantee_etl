@@ -45,7 +45,7 @@ async def run_worker() -> None:
 
 def main() -> None:
     dictConfig(UVICORN_LOGGING)
-    mode = "api"
+    mode = "kafka"
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
 
