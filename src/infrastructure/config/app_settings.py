@@ -26,10 +26,10 @@ class KafkaSettings(BaseModel):
 
 class AwsSettings(BaseModel):
     region: str = Field(description="La región de la aplicación")
-    access_key_id: str = Field(
+    access_key_id: str | None = Field(
         description="es el access key de la cuenta obtenido en el IAM"
     )
-    secret: str = Field(description="es el secret key de la cuenta obtenido en el IAM")
+    secret: str | None= Field(description="es el secret key de la cuenta obtenido en el IAM")
 
 
 class S3Settings(BaseModel):
