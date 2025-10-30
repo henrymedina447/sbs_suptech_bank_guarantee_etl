@@ -1,5 +1,6 @@
 import boto3
 from botocore.config import Config
+from boto3.dynamodb.conditions import Key, Attr
 from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource
 from mypy_boto3_dynamodb.service_resource import Table
 
@@ -29,3 +30,26 @@ class DynamoLoaderDocument(LoaderMetadataPort):
     def save_metadata(self, data: EtlBankGuaranteeState) -> None:
         raw_data = data.model_dump(mode="json", exclude_none=True)
         self.si_table.put_item(Item=raw_data)
+
+        print(f"Saving metadata", data)
+
+        query_output = self.si_table.query(
+            KeyConditionExpression=Key("supervisoryRecordId").eq(data.record_id),
+            IndexName="supervisoryRecordId-index",
+            Limit=1,
+        )
+        metadata = query_output["Items"][0]
+
+        new_metadata = data.model_dump(mode="json", exclude_none=True)    
+        metadata.update(new_metadata)
+
+        self.si_table.update_item(
+            Key={
+                "id": metadata["id"],
+            },
+            UpdateExpression="set metadata = :metadata",
+            ExpressionAttributeValues={
+                ":metadata": metadata,
+            },
+            ReturnValues="UPDATED_NEW",
+        )
