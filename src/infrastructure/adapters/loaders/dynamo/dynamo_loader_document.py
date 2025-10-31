@@ -11,6 +11,9 @@ from domain.models.states.etl_bank_guarantee_state import EtlBankGuaranteeState
 from infrastructure.config.app_settings import get_app_settings, AppSettings
 from typing import Any
 
+import logging
+
+
 
 class DynamoLoaderDocument(LoaderMetadataPort):
     def __init__(self):
@@ -19,6 +22,7 @@ class DynamoLoaderDocument(LoaderMetadataPort):
         self.si_table: Table = dynamo_resource.Table(
             self.app_settings.table_settings.si_table
         )
+        self.logger = logging.getLogger("app.DynamoLoaderDocument")
 
     def _get_configuration(self) -> DynamoDBServiceResource:
         _cfg = Config(
@@ -41,6 +45,12 @@ class DynamoLoaderDocument(LoaderMetadataPort):
         )
         existing_metadata: dict[str, Any] = (query_output.get("Items") or [{}])[0]
 
+        self.logger.info("Existing Metadata")
+        self.logger.info(existing_metadata)
+
+        self.logger.info("Metadata")
+        self.logger.info(raw_data["metadata"])
+        
         metadata = raw_data["metadata"]
         if existing_metadata.get("metadata"):
             metadata.update(existing_metadata["metadata"])
