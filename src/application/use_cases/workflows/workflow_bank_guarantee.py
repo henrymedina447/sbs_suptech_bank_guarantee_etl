@@ -76,6 +76,7 @@ class WorkflowBankGuarantee(WorkflowBase):
                 raise ValueError("El proceso de transformación fue fallido en bank guarantee")
 
             entity = WorkflowBankGuaranteeServiceDomain.transform_in_entity_to_dynamo(self.doc, state)
+            self.logger.info("Grabar Metadada")
             self._loader_metadata.save_metadata(entity)
             return {
                 "load_success": True
