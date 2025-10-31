@@ -8,6 +8,7 @@ from application.ports.loader_metadata_port import LoaderMetadataPort
 from domain.models.entities.bank_guarantee_item_entity import BankGuaranteeItemEntity
 from domain.models.states.etl_bank_guarantee_state import EtlBankGuaranteeState
 from infrastructure.config.app_settings import get_app_settings, AppSettings
+from typing import Any
 
 
 class DynamoLoaderDocument(LoaderMetadataPort):
@@ -29,21 +30,31 @@ class DynamoLoaderDocument(LoaderMetadataPort):
         )
 
     def save_metadata(self, data: BankGuaranteeItemEntity) -> None:
-        print(f"Saving metadata", data)
+        raw_data = data.model_dump(mode="json", exclude_none=True)
+
+        existing_metadata: dict[str, Any] = {}
 
         query_output = self.si_table.query(
-            KeyConditionExpression=Key("supervisoryRecordId").eq(data.supervisory_record_id),
+            KeyConditionExpression=Key("supervisoryRecordId").eq(
+                raw_data["supervisory_record_id"]
+            ),
             IndexName="supervisoryRecordId-index",
             Limit=1,
         )
-        metadata = query_output["Items"][0]
+        existing_metadata = query_output["Items"][0]
 
-        new_metadata = data.model_dump(mode="json", exclude_none=True)
-        metadata.update(new_metadata)
+        metadata = {
+            "period_year": raw_data["period_year"],
+            "period_month": raw_data["period_month"],
+            "file_name": raw_data["file_name"],
+        }
+
+        metadata.update(raw_data["metadata"])
+        metadata.update(existing_metadata["metadata"])
 
         self.si_table.update_item(
             Key={
-                "id": metadata["id"],
+                "id": existing_metadata["id"],
             },
             UpdateExpression="set metadata = :metadata",
             ExpressionAttributeValues={
