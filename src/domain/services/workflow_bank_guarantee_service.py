@@ -79,11 +79,11 @@ class WorkflowBankGuaranteeServiceDomain:
     ) -> BankGuaranteeItemEntity:
         return BankGuaranteeItemEntity(
             id=str(uuid.uuid4()),
-            file_name=origin_doc.key,
-            period_year=bank_guarantee_state.period_year,
-            period_month=bank_guarantee_state.period_month,
             supervisory_record_id=bank_guarantee_state.record_id,
             metadata=BankGuaranteeMetadata(
+                file_name=origin_doc.key,
+                period_year=bank_guarantee_state.period_year,
+                period_month=bank_guarantee_state.period_month,
                 letter_date=bank_guarantee_state.letter_date,
                 disbursed_amount=str(bank_guarantee_state.disbursed_amount) if bank_guarantee_state.disbursed_amount else None,
                 reduced_amount=str(bank_guarantee_state.reduced_amount) if bank_guarantee_state.reduced_amount else None,

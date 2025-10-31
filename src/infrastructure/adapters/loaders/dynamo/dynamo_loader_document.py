@@ -3,6 +3,7 @@ from botocore.config import Config
 from boto3.dynamodb.conditions import Key, Attr
 from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource
 from mypy_boto3_dynamodb.service_resource import Table
+from mypy_boto3_dynamodb.type_defs import QueryOutputTableTypeDef
 
 from application.ports.loader_metadata_port import LoaderMetadataPort
 from domain.models.entities.bank_guarantee_item_entity import BankGuaranteeItemEntity
@@ -31,26 +32,18 @@ class DynamoLoaderDocument(LoaderMetadataPort):
 
     def save_metadata(self, data: BankGuaranteeItemEntity) -> None:
         raw_data = data.model_dump(mode="json", exclude_none=True)
-
-        existing_metadata: dict[str, Any] = {}
-
-        query_output = self.si_table.query(
+        query_output: QueryOutputTableTypeDef = self.si_table.query(
             KeyConditionExpression=Key("supervisoryRecordId").eq(
-                raw_data["supervisory_record_id"]
+                data.supervisory_record_id
             ),
             IndexName="supervisoryRecordId-index",
             Limit=1,
         )
-        existing_metadata = query_output["Items"][0]
+        existing_metadata: dict[str, Any] = (query_output.get("Items") or [{}])[0]
 
-        metadata = {
-            "period_year": raw_data["period_year"],
-            "period_month": raw_data["period_month"],
-            "file_name": raw_data["file_name"],
-        }
-
-        metadata.update(raw_data["metadata"])
-        metadata.update(existing_metadata["metadata"])
+        metadata = raw_data["metadata"]
+        if existing_metadata.get("metadata"):
+            metadata.update(existing_metadata["metadata"])
 
         self.si_table.update_item(
             Key={

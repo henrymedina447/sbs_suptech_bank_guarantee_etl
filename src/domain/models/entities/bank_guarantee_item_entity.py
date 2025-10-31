@@ -12,13 +12,13 @@ class BankGuaranteeMetadata(BaseModel):
         description="Contiene el nombre del promotor que se entiende es el cliente",
         default=None
     )
+    file_name: str = Field(description="Indica el nombre del archivo")
+    type_document: str = Field(description="Indica el tipo de documento", default="carta fianza")
+    period_month: str = Field(description="Contiene el mes de donde pertenece el archivo")
+    period_year: str = Field(description="Contiene el año donde pertenece el archivo")
 
 
 class BankGuaranteeItemEntity(BaseModel):
     id: str = Field(description="Bank guarantee item id")
-    file_name: str = Field(description="Indica el nombre del archivo")
-    supervisory_record_id: str = Field(description="Indica el id del archivo")
-    type_document: str = Field(description="Indica el tipo de documento", default="carta fianza")
-    period_month: str = Field(description="Contiene el mes de donde pertenece el archivo")
-    period_year: str = Field(description="Contiene el año donde pertenece el archivo")
     metadata: BankGuaranteeMetadata = Field(description="Contiene toda la metadata extraída del documento")
+    supervisory_record_id: str = Field(description="Indica el id del archivo")
