@@ -64,7 +64,7 @@ class KafkaEventController:
                         # Por negocio se decidió que solo debe procesarse un documento a la vez
                         one_document_data = json.loads(text) if text else {}  # Esto representa un solo documento
                         print(one_document_data)
-                        one_document: ProcessDocument = ProcessDocument.model_validate(**one_document_data)
+                        one_document: ProcessDocument = ProcessDocument.model_validate(one_document_data)
                         process_document = ProcessDocumentRequest(documents=[one_document])
                         document_requests.append(process_document)
                     tasks.append(
