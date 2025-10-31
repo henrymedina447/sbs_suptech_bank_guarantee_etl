@@ -81,7 +81,7 @@ class KafkaEventController:
 
     async def _handle(self, document_requests: list[ProcessDocumentRequest]) -> None:
 
-        app_logger.info(f"Procesando mensajes", document_requests)
+        app_logger.info(f"Procesando mensajes", {document_requests})
 
         async with self._sem:
             try:
