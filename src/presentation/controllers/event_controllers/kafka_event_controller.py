@@ -9,8 +9,6 @@ from infrastructure.bootstrap.container import build_workflow
 from infrastructure.config.app_settings import KafkaSettings, get_app_settings
 from presentation.dtos.requests.process_document import ProcessDocumentRequest, ProcessDocument
 
-app_logger = logging.getLogger("app.environment")
-
 
 class KafkaEventController:
     def __init__(self, max_concurrency: int = 8):
@@ -80,9 +78,7 @@ class KafkaEventController:
             await c.stop()
 
     async def _handle(self, document_requests: list[ProcessDocumentRequest]) -> None:
-
-        app_logger.info(f"Procesando mensajes", {document_requests})
-
+        print("handler", document_requests)
         async with self._sem:
             try:
                 documents_to_wf: list[DocumentContractState] = []
@@ -100,6 +96,6 @@ class KafkaEventController:
                         documents_to_wf.append(document_contract_state)
                 await self._wf.execute(documents=documents_to_wf)
             except ValidationError as e:
-                app_logger.exception(f"Error de validación: {str(e)}")
+                print(f"Error de validación: {str(e)}")
             except Exception as e:
-                app_logger.exception(f"Error procesando mensaje kafka {str(e)}")
+                print(f"Error procesando mensaje kafka {str(e)}")

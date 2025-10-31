@@ -86,6 +86,7 @@ class WorkflowOrchestrator:
         return {}
 
     def _final_task(self, state: EtlOrchestratorState) -> dict[str, Any]:
+        self.logger.info("Finalizando ETL")
         return {}
 
     def _build(self) -> CompiledStateGraph[EtlOrchestratorState]:
