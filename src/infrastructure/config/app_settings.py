@@ -1,15 +1,7 @@
 import os
 from functools import lru_cache
 from typing import Literal
-
-from dotenv import load_dotenv
 from pydantic import BaseModel, Field, ValidationError
-
-path_root = os.path.dirname(
-    os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-)
-dotenv_path = os.path.join(path_root, ".env")
-load_dotenv(dotenv_path, override=True)
 
 
 class KafkaSettings(BaseModel):
@@ -29,7 +21,7 @@ class AwsSettings(BaseModel):
     access_key_id: str | None = Field(
         description="es el access key de la cuenta obtenido en el IAM"
     )
-    secret: str | None= Field(description="es el secret key de la cuenta obtenido en el IAM")
+    secret: str | None = Field(description="es el secret key de la cuenta obtenido en el IAM")
 
 
 class S3Settings(BaseModel):
@@ -58,7 +50,6 @@ class AppSettings(BaseModel):
         description="Todas las configuraciones de las tablas"
     )
     kafka_settings: KafkaSettings = Field(description="Todas las configuraciones asociadas al kafka")
-
 
     @classmethod
     def load(cls) -> "AppSettings":

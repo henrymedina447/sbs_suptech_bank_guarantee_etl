@@ -43,7 +43,7 @@ class WorkflowOrchestrator:
         )
         self._graph = self._build()
         self.batch_size: int = 1
-        self.strategy: Literal["dynamo", "bucket"] = "bucket"
+        self.strategy: Literal["dynamo", "bucket"] = "dynamo"
         self.app_settings: AppSettings = get_app_settings()
 
     def _start_task(self, state: EtlOrchestratorState) -> dict[str, Any]:
@@ -88,8 +88,8 @@ class WorkflowOrchestrator:
     def _final_task(self, state: EtlOrchestratorState) -> dict[str, Any]:
         return {}
 
-    def _build(self) -> CompiledStateGraph[Any]:
-        g = StateGraph(state_schema=Any)
+    def _build(self) -> CompiledStateGraph[EtlOrchestratorState]:
+        g = StateGraph(state_schema=EtlOrchestratorState)
         g.add_node("start_task", self._start_task)
         g.add_node("run_etl", self._run_etl)
         g.add_node("final_task", self._final_task)
@@ -101,5 +101,6 @@ class WorkflowOrchestrator:
         return g.compile()
 
     async def execute(self, documents: list[DocumentContractState]):
+        print("documents", documents)
         state = EtlOrchestratorState(total_documents_to_process=documents)
         await self._graph.ainvoke(state)

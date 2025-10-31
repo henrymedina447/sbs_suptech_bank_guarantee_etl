@@ -5,6 +5,7 @@ from logging.config import dictConfig
 
 import uvicorn
 
+from infrastructure.config.environment_settings import load_environment
 from infrastructure.config.uvicorn_logging_settings import UVICORN_LOGGING
 
 
@@ -21,7 +22,6 @@ def run_api() -> None:
 
 async def run_worker() -> None:
     from presentation.controllers.event_controllers.kafka_event_controller import KafkaEventController
-
     max_conc = 8
     controller = KafkaEventController(max_conc)
     await controller.start()
@@ -45,7 +45,8 @@ async def run_worker() -> None:
 
 def main() -> None:
     dictConfig(UVICORN_LOGGING)
-    mode = "kafka"
+    load_environment()
+    mode = "api"
     if len(sys.argv) > 1:
         mode = sys.argv[1].lower()
 

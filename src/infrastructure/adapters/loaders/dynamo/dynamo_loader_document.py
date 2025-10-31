@@ -5,6 +5,7 @@ from mypy_boto3_dynamodb.service_resource import DynamoDBServiceResource
 from mypy_boto3_dynamodb.service_resource import Table
 
 from application.ports.loader_metadata_port import LoaderMetadataPort
+from domain.models.entities.bank_guarantee_item_entity import BankGuaranteeItemEntity
 from domain.models.states.etl_bank_guarantee_state import EtlBankGuaranteeState
 from infrastructure.config.app_settings import get_app_settings, AppSettings
 
@@ -27,20 +28,17 @@ class DynamoLoaderDocument(LoaderMetadataPort):
             "dynamodb", config=_cfg, region_name=self.app_settings.aws_settings.region
         )
 
-    def save_metadata(self, data: EtlBankGuaranteeState) -> None:
-        raw_data = data.model_dump(mode="json", exclude_none=True)
-        self.si_table.put_item(Item=raw_data)
-
+    def save_metadata(self, data: BankGuaranteeItemEntity) -> None:
         print(f"Saving metadata", data)
 
         query_output = self.si_table.query(
-            KeyConditionExpression=Key("supervisoryRecordId").eq(data.record_id),
+            KeyConditionExpression=Key("supervisoryRecordId").eq(data.supervisory_record_id),
             IndexName="supervisoryRecordId-index",
             Limit=1,
         )
         metadata = query_output["Items"][0]
 
-        new_metadata = data.model_dump(mode="json", exclude_none=True)    
+        new_metadata = data.model_dump(mode="json", exclude_none=True)
         metadata.update(new_metadata)
 
         self.si_table.update_item(
