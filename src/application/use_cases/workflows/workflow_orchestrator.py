@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import uuid
+
 from typing import Any, Literal
 
 from langgraph.constants import START, END
@@ -12,22 +14,30 @@ from application.ports.loader_metadata_port import LoaderMetadataPort
 from application.ports.notification_port import NotificationPort
 from application.ports.poller_document_port import PollerDocumentPort
 from application.ports.transform_document_port import TransformDocumentPort
-from application.use_cases.workflows.workflow_bank_guarantee import WorkflowBankGuarantee
+from application.use_cases.workflows.workflow_bank_guarantee import (
+    WorkflowBankGuarantee,
+)
 from domain.models.states.document_contract_state import DocumentContractState
 from domain.models.states.etl_orchestrator_state import EtlOrchestratorState
-from domain.services.workflow_orchestrator_service import WorkflowOrchestratorServiceDomain
+from domain.services.workflow_orchestrator_service import (
+    WorkflowOrchestratorServiceDomain,
+)
+from domain.models.notification import Notification, NotificationData
+
 from infrastructure.config.app_settings import AppSettings, get_app_settings
-from application.services.workflow_orchestrator_service import WorkflowOrchestratorServiceApplication as wfa
+from application.services.workflow_orchestrator_service import (
+    WorkflowOrchestratorServiceApplication as wfa,
+)
 
 
 class WorkflowOrchestrator:
     def __init__(
-            self,
-            extractor: ExtractorDocumentPort,
-            poller: PollerDocumentPort,
-            transformer: TransformDocumentPort,
-            loader_metadata: LoaderMetadataPort,
-            notification: NotificationPort,
+        self,
+        extractor: ExtractorDocumentPort,
+        poller: PollerDocumentPort,
+        transformer: TransformDocumentPort,
+        loader_metadata: LoaderMetadataPort,
+        notification: NotificationPort,
     ):
         self.logger = logging.getLogger("app.workflows")
         self._extractor = extractor
@@ -39,7 +49,7 @@ class WorkflowOrchestrator:
             extractor=extractor,
             transformer=transformer,
             loader_metadata=loader_metadata,
-            notification=notification
+            notification=notification,
         )
         self._graph = self._build()
         self.batch_size: int = 1
@@ -51,12 +61,14 @@ class WorkflowOrchestrator:
             if self.strategy == "bucket":
                 bucket_name: str = self.app_settings.s3_settings.bucket
                 prefix: str = "cartas_fmv/"
-                documents_str: list[str] = self._poller.get_file_names(bucket_name, prefix)
+                documents_str: list[str] = self._poller.get_file_names(
+                    bucket_name, prefix
+                )
                 documents: list[DocumentContractState] = [
-                    WorkflowOrchestratorServiceDomain.transform_to_document_contract(d) for d in documents_str]
-                return {
-                    "total_documents_to_process": documents
-                }
+                    WorkflowOrchestratorServiceDomain.transform_to_document_contract(d)
+                    for d in documents_str
+                ]
+                return {"total_documents_to_process": documents}
             return {}
         except Exception as e:
             self.logger.error(e)
@@ -71,22 +83,46 @@ class WorkflowOrchestrator:
         :param state:
         :return:
         """
-        total_documents_to_process: list[DocumentContractState] = state.total_documents_to_process
+        total_documents_to_process: list[DocumentContractState] = (
+            state.total_documents_to_process
+        )
         # Si no hay documentos por procesar; el ETL finaliza
         if len(total_documents_to_process) == 0:
             self.logger.warning("No hay documentos que procesar")
-            return {
-                "total_documents_processed": [],
-                "total_documents_failed": []
-            }
+            return {"total_documents_processed": [], "total_documents_failed": []}
         sem = asyncio.Semaphore(self.batch_size)
-        for idx, batch_docs in enumerate(wfa.create_batch(total_documents_to_process, self.batch_size)):
-            batch_result = await wfa.run_one_batch(batch_docs, sem, self.bank_guarantee_wf)
 
-        return {}
+        total_documents_processed: list[DocumentContractState] = []
+        for idx, batch_docs in enumerate(
+            wfa.create_batch(total_documents_to_process, self.batch_size)
+        ):
+            batch_result = await wfa.run_one_batch(
+                batch_docs, sem, self.bank_guarantee_wf
+            )
+            total_documents_processed.extend(batch_result)
+
+        return {
+            "total_documents_processed": total_documents_processed,
+        }
 
     def _final_task(self, state: EtlOrchestratorState) -> dict[str, Any]:
         self.logger.info("Finalizando ETL")
+        print("State", state)
+
+        metadata_notification_type = "regulatory-compliance-prompts.insert-metadata"
+        notifications = [
+            Notification(
+                id=str(uuid.uuid4()),
+                message=NotificationData(
+                    session_id=result.session_id,
+                    type=metadata_notification_type,
+                    data={"recordId": result.record_id, "parentId": result.parent_id},
+                ),
+            )
+            for result in state.total_documents_processed
+        ]
+
+        self._notification.notify(notifications)
         return {}
 
     def _build(self) -> CompiledStateGraph[EtlOrchestratorState]:
